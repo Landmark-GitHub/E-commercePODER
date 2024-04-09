@@ -16,12 +16,6 @@ var data = [
     address: "Home",
     number: "123",
   },
-  {
-    id: 2,
-    name: "test",
-    address: "Home",
-    number: "123",
-  },
 ];
 
 const data2 = [
