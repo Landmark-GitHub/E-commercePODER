@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Tap from "../component/tap";
-import ListItems from "../component/ListItems";
+import Tap from "../../component/tap";
+import ListItems from "../../component/ListItems";
 
 function Home() {
   const [openModal, setOpenModal] = useState(false); // Initialize openModal as a boolean

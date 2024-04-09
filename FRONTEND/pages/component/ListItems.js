@@ -7,10 +7,7 @@ import { classNames } from "primereact/utils";
 
 export default function ListItem(props) {
     const { data, openModaled } = props;
-    const [products, setProducts] = useState(data);
-    const [layout, setLayout] = useState("grid");
-  
-    console.table(products);
+    const [products, setProducts] = useState([]);
   
     const getSeverity = (product) => {
       switch (product.inventoryStatus) {
@@ -27,14 +24,18 @@ export default function ListItem(props) {
           return null;
       }
     };
+
+    useEffect(() => {
+      setProducts(data)
+    },[data]);
   
     return (
-      <div className="bg-blue-300">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6  gap-4 p-2">
+      <div className=" bg-white">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6  gap-4 p-2 pb-4">
           {products.map((item, index) => (
             <div
               key={index}
-              className="bg-gray-100 p-4 rounded-lg shadow-md cursor-pointer"
+              className="bg-gray-100 p-2 rounded-lg shadow-md cursor-pointer"
               onClick={() => 
                 openModaled(item.title, item.price)
               }
