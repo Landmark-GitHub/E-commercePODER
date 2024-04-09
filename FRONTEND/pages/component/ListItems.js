@@ -1,9 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "primereact/button";
-import { DataView, DataViewLayoutOptions } from "primereact/dataview";
-import { Rating } from "primereact/rating";
-import { Tag } from "primereact/tag";
-import { classNames } from "primereact/utils";
 
 export default function ListItem(props) {
     const { data, openModaled } = props;
