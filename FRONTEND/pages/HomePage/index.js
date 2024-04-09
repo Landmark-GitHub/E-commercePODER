@@ -122,7 +122,6 @@ const HeaderPage = (props) => {
       borderRadius: '50%' 
     }
   };
-
   
   return (
     <motion.div
