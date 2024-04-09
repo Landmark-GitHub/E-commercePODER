@@ -120,7 +120,7 @@ const HeaderPage = (props) => {
       width: '60px',
       height: '60px',
       borderRadius: '50%' 
-    },
+    }
   };
 
   
