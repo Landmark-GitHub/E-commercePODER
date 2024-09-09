@@ -2,8 +2,6 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import ListItem from "../component/ListItems";
-import { getAllProducts, getProductById } from "../datatest/data";
-import { getListCartAll, addProductToCart} from "../datatest/listcart";
 
 import { MdOutlineTune } from "react-icons/md";
 import { MdOutlineClose } from "react-icons/md";
@@ -53,7 +51,7 @@ const HeaderPage = (props) => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
       >
-        PREORDER
+        PODER
       </motion.h1>
       <div style={stylesHeaderPage.username}>.</div>
     </motion.div>
@@ -87,6 +85,7 @@ const Menu = (props) => {
     },
   };
 
+
   return (
     <motion.div
       style={stylesMenu.body}
@@ -106,7 +105,7 @@ const Menu = (props) => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
-          PREORDER
+          PODER
         </motion.h1>
         <div>Profile</div>
       </motion.div>
@@ -117,7 +116,18 @@ const Menu = (props) => {
         transition={{ delay: 0.5 }}
       >
         <motion.div whileHover={{ x: 10 }}>
-          <Link href="../Store">
+          <Link href={{
+              pathname: "../profile",
+              query: { data: JSON.stringify({
+                  id: 3,
+                  user: 4,
+                  fullname: "Test3",
+                  address: "123/123",
+                  province: "Bangkok",
+                  post_code: 10300,
+                  tel: "097895645"
+              })}
+          }}>
             <label className="cursor-pointer">บัญชีผู้ใช้</label>
           </Link>
         </motion.div>
@@ -144,7 +154,8 @@ const Menu = (props) => {
 
 const Filter = (props) => {
 
-  const dataTppe = [...new Set(getAllProducts().map(product => product.brand))];
+  const [dataType, setDataType] = useState([...new Set(props.data.map((product) => product.type))])
+  const [dataBrand, setDataBrand] = useState([...new Set(props.data.map((product) => product.brand))])
 
   const stylesFilter = {
     body: {
@@ -156,9 +167,13 @@ const Filter = (props) => {
     scrollContainer: {
       height: "300px",
       overflowY: "auto",
-      padding: "10px"
+      padding: "10px",
     },
   };
+
+  useEffect(() => {
+    
+  }, []);
 
   return (
     <motion.div
@@ -173,99 +188,97 @@ const Filter = (props) => {
       }}
     >
       <div className="flex justify-end text-black p-3 font-bold cursor-pointer">
-        <MdOutlineClose style={{ fontSize: '32px' }} onClick={props.openFilter}/>
+        <MdOutlineClose
+          style={{ fontSize: "32px" }}
+          onClick={props.openFilter}
+        />
       </div>
       <div className="text-black grid grid-flow-col">
         <div style={stylesFilter.scrollContainer}>
-          <div 
-            className={`p-2 text-xl rounded-full border-4 ${props.dataFilter === "ALL" ? 'border-black' : ''} hover:border-black mb-2`}
+          <div
+            className={`p-2 text-xl rounded-full border-4 ${
+              props.dataFilter === "ALL" ? "border-black" : ""
+            } hover:border-black mb-2`}
             onClick={() => {
-              props.setDataFilter("ALL")
+              props.setDataFilter(null);
             }}
-            >
-              ALL
-            </div>
-          {dataTppe.map((data,index)=>(
-            <div 
-            key={index} 
-            className={`p-2 text-xl rounded-full border-4 ${props.dataFilter === data ? 'border-black' : ' '} hover:border-black mb-2`}
-            onClick={() => {
-              console.log(data)
-              props.setDataFilter(data)
-            }}
+          >
+            ALL
+          </div>
+          {dataType.map((data, index) => (
+            <div
+              key={index}
+              className={`p-2 text-xl rounded-full border-4 ${
+                props.dataFilter === data ? "border-black" : " "
+              } hover:border-black mb-2`}
+              onClick={() => {
+                console.log('You selected Type ' + data);;
+                props.setDataFilter(data);
+              }}
             >
               {data}
             </div>
           ))}
         </div>
         <div style={stylesFilter.scrollContainer}>
-          {/* {dataTppe.map((data,index)=>(
-            <div key={index} className="p-2 text-xl rounded-full border-4 hover:border-black mb-2">
+          <div
+            className={`p-2 text-xl rounded-full border-4 ${
+              props.dataFilter === "ALL" ? "border-black" : ""
+            } hover:border-black mb-2`}
+            onClick={() => {
+              console.log('ALL');
+              // props.setDataFilter("ALL");
+            }}
+          >
+            ALL
+          </div>
+          {dataBrand.map((data, index) => (
+            <div
+              key={index}
+              className={`p-2 text-xl rounded-full border-4 ${
+                props.dataFilter === data ? "border-black" : " "
+              } hover:border-black mb-2`}
+              onClick={() => {
+                console.log('You selected Brand ' + data);
+                // props.setDataFilter(data);
+              }}
+            >
               {data}
             </div>
-          ))} */}
-          null
+          ))}
         </div>
-        <div style={stylesFilter.scrollContainer}>
-          {/* {dataTppe.map((data,index)=>(
-            <div key={index} className="p-2 text-xl rounded-full border-4 hover:border-black mb-2">
-              {data}
-            </div>
-          ))} */}null
-        </div>
-        <div style={stylesFilter.scrollContainer}>
-          {/* {dataTppe.map((data,index)=>(
-            <div key={index} className="p-2 text-xl rounded-full border-4 hover:border-black mb-2">
-              {data}
-            </div>
-          ))} */}null
-        </div>
+        <div style={stylesFilter.scrollContainer}>null</div>
+        <div style={stylesFilter.scrollContainer}>null</div>
       </div>
     </motion.div>
   );
 };
 
-const ShowProduct = (props) => {
-  const { productID, openModal } = props;
-  const [ sizeSelect, setSizeSelect] = useState()
-
-  function addProduct() {
-    if (sizeSelect) {
-      var newProduct = 
-      {
-        idProduct: productID.id,
-        size: sizeSelect
-      }
-      addProductToCart(newProduct)
-      console.table(newProduct);
-      openModal()
-    }else{
-      alert("โปรดเลือก Size สินค้า")
-    }
-  }
+const ShowProduct = ({ productID, openModal }) => {
+  const [sizeSelect, setSizeSelect] = useState(null);
 
   const BuyOrReview = (props) => {
     const [choice, setChoice] = useState('BUYING');
     const [dataStork, setDataStork] = useState(props.stork)
 
-    const buyings = [
-      {
-        size: 'S',
-        quantity: 10
-      },
-      {
-        size: 'M',
-        quantity: 10
-      },
-      {
-        size: 'L',
-        quantity: 10
-      },
-      {
-        size: 'XL',
-        quantity: 10
-      },
-    ]
+    // const buyings = [
+    //   {
+    //     size: 'S',
+    //     quantity: 10
+    //   },
+    //   {
+    //     size: 'M',
+    //     quantity: 10
+    //   },
+    //   {
+    //     size: 'L',
+    //     quantity: 10
+    //   },
+    //   {
+    //     size: 'XL',
+    //     quantity: 10
+    //   },
+    // ]
   
     const reviews = [
       {
@@ -396,15 +409,53 @@ const ShowProduct = (props) => {
     );
   };
 
+  const addProductToCart = async() => {
+    console.log(productID)
+    var data = {
+      "customer":"Test4",
+      "product_name": productID.name,
+      "quantity":1,
+      "price": productID.price
+    } 
+    try {
+      const response = await fetch('http://localhost:3342/api/setUpCartItem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || 'Request failed');
+      }
+  
+      const responseData = await response.json();
+      openModal()
+      alert("add item to cart")
+      return responseData;
+    } catch (error) {
+      console.error('Error:', error);
+      openModal()
+      throw error;
+    }
+  }
+
+  if (!productID) {
+    return null; // Return nothing if productID is falsy
+  }
+
   const stylesShowProduct = {
     button: {
       backgroundColor: "#d9d9d9",
-      hoverBackgroundColor: "#BB0000"
+      hoverBackgroundColor: "#BB0000",
     },
-  }
+  };
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-lg">
+    <div
+      className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-lg" >
       <div className="bg-white rounded-lg shadow-md max-w-screen-lg mx-auto h-full lg:h-4/5 overflow-auto">
         <div className="grid grid-cols-1 md:grid-rows-2 lg:grid-cols-2 lg:grid-rows-1 lg:h-full gap-6 md:gap-8">
           <div className="flex flex-col items-center md:items-center lg:justify-center p-12 mb-32">
@@ -429,9 +480,9 @@ const ShowProduct = (props) => {
             <div className="my-6 h-48 overflow-y-auto text-black">
               {productID.description}
             </div>
-            <div className="overflow-y-auto">
-              <BuyOrReview sizeSelect={sizeSelect} setSizeSelect={setSizeSelect} stork={productID.stork}/>
-            </div>
+            {/* <div className="overflow-y-auto">
+              <BuyOrReview/>
+            </div> */}
             <div className="flex gap-2 justify-end">
               <button
                 style={stylesShowProduct.button}
@@ -442,7 +493,7 @@ const ShowProduct = (props) => {
               </button>
               <button
                 className=" bg-gray-500 hover:bg-green-600 text-white px-6 py-3 rounded-md self-start mt-4"
-                onClick={() => addProduct()}
+                onClick={() => addProductToCart()}
               >
                 เพิ่มลงตระกร้า
               </button>
@@ -459,9 +510,10 @@ const HomePage = () => {
   const [filter, setFilter] = useState(false);
   const [modal, setModal] = useState(false);
 
-  const [data, setData] = useState(getAllProducts());
-  const [productID, setProductID] = useState();
-  const [dataFilter, setDataFilter] = useState();
+  const [data, setData] = useState(null);
+  const [productID, setProductID] = useState(null);
+
+  const [dataFilter, setDataFilter] = useState(null); 
 
   function openMenu() {
     setMenu(!menu);
@@ -472,12 +524,11 @@ const HomePage = () => {
   }
 
   function openModal(id) {
-    if (id != null) {
-      setProductID(getProductById(id));
-      setModal(!modal);
-    } else {
-      setModal(!modal);
+    if (modal) {
+      setProductID(null)
+      setModal(false);
     }
+    setModal(!modal);
   }
 
   const stylesHomePage = {
@@ -492,32 +543,22 @@ const HomePage = () => {
     },
   };
 
-  // const fetchData = async () => {
-  //   try {
-  //     const response = await fetch("http://127.0.0.1:8000/ecommerce/");
-  //     if (!response.ok) {
-  //       throw new Error("Network response was not ok");
-  //     }
-  //     const jsonData = await response.json();
-  //     setData(jsonData);
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //   }
-  // };
-
-  const loadProducts = () => {
-    if (!dataFilter || dataFilter === "ALL") {
-      setData(getAllProducts());
-    } else {
-      const filteredData = getAllProducts().filter(product => product.brand === dataFilter);
-      setData(filteredData);
+  const fetchData = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/ecommerce/");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const jsonData = await response.json();
+      setData(jsonData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
-  }
+  };
 
   useEffect(() => {
-    // fetchData();
-    loadProducts();
-  }, [dataFilter]);
+    fetchData();
+  }, [data,productID]);
 
   return (
     <div className=" bg-white">
@@ -532,27 +573,37 @@ const HomePage = () => {
             <div className="overflow-y-auto">
               {filter ? (
                 <div>
-                  <Filter openFilter={openFilter} dataFilter={dataFilter} setDataFilter={setDataFilter} loadProducts={loadProducts} />
+                  <Filter
+                    openFilter={openFilter}
+                    data={data}
+                    setDataFilter={setDataFilter}
+                  />
                 </div>
               ) : (
                 <div style={stylesHomePage.areaFilter}>
                   <div className="cursor-pointer" onClick={openFilter}>
-                    <MdOutlineTune style={{ fontSize: '32px' }} />
+                    <MdOutlineTune style={{ fontSize: "32px" }} />
                   </div>
                 </div>
               )}
-              <ListItem data={data} openModaled={openModal} />
+              { dataFilter ? (
+                <ListItem data={data} dataFilter={dataFilter} openModal={openModal} setProductID={setProductID}/>
+              ):(
+                <ListItem data={data} openModal={openModal} setProductID={setProductID}/>
+              )}
             </div>
           </div>
         )}
-        {modal ? (
-          <ShowProduct openModal={openModal} productID={productID} />
-        ) : (
-          <></>
+        {modal && productID && (
+          <ShowProduct
+            productID={data.find((product) => product.id === productID)}
+            openModal={openModal}
+          />
         )}
-      </AnimatePresence>
+    </AnimatePresence>
     </div>
   );
+  
 };
 
 export default HomePage;

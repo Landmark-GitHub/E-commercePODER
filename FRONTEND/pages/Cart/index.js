@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { getAllProducts, getProductById } from "../datatest/data";
-import { getListCartAll, addProductToCart } from "../datatest/listcart";
 import { getAddress } from "../datatest/address";
 import Router from "next/router";
 
@@ -34,7 +32,7 @@ const HeaderPage = (props) => {
         whileTap={{ scale: 0.9 }}
       >
         <Link href={"../Store"}>
-          <label>PREORDER CART</label>
+          <label>PODER CART</label>
         </Link>
       </motion.h1>
       <div>Profile</div>
@@ -102,43 +100,222 @@ const ListAddresses = () => {
 
 const ListProduct = (props) => {
   const { setSelectProduct, setPriceTotal } = props;
+  const [dataProduct, setDataProduct] = useState([]);
   const [dataProductCart, setDataProductCart] = useState([]);
   const [selectedProducts, setSelectedProducts] = useState([]);
+  const [editProductId, setEditProductId] = useState(null);
 
-  const loadDataProduct = () => {
-    var dataIndex = getListCartAll();
-    var dataProduct = getAllProducts();
-
-    const dataProductCart_temp = dataIndex.map((cartItem) => {
-      const product = dataProduct.find(
-        (product) => product.id === cartItem.idProduct
-      );
-      if (product) {
-        return {
-          idProduct: product.id,
-          name: product.name,
-          price: product.price,
-          size: cartItem.size,
-          quantity: cartItem.quantity,
-          img: product.img,
-        };
-      } else {
-        return null;
+  const loadDataProduct = async () => {
+    try {
+      const responseP = await fetch("http://127.0.0.1:8000/ecommerce/");
+      const responseC = await fetch("http://localhost:3342/api/setUpCartItem");
+      
+      if (!responseP.ok || !responseC.ok) {
+        throw new Error("Network response was not ok");
       }
-    });
+      
+      const jsonDataP = await responseP.json();
+      const jsonDataC = await responseC.json();
+      
+      const dataC = jsonDataC.filter((data) => data.customer === 4).reverse();
+      
+      if (!dataC) {
+        throw new Error("No CartItem data found for customer 2");
+      }
+  
+      const productData = dataC.map((item) => {
+        return jsonDataP.find((product) => product.name === item.product_name);
+      });
+      
+      if (!productData) {
+        throw new Error("No product data found for CartItem ID");
+      }
+      setDataProductCart(dataC);
+      setDataProduct(productData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+  
 
-    setDataProductCart(dataProductCart_temp);
+  const deleteProduct = async (product) => {
+    var data = {
+      "id": product.id,
+    };
+    console.log(product);
+    try {
+      const response = await fetch('http://localhost:3342/api/deleteCartItem', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage || 'Request failed');
+      }
+  
+      alert("Item deleted from cart");
+    } catch (error) {
+      console.error('Delete product failed:', error);
+      throw error;
+    }
   };
 
   const handleSelectProduct = (product) => {
-    const isSelected = selectedProducts.some((item) => item.idProduct === product.idProduct);
+    const isSelected = selectedProducts.some((item) => item.id === product.id);
     if (isSelected) {
-      const updatedProducts = selectedProducts.filter((item) => item.idProduct !== product.idProduct);
+      const updatedProducts = selectedProducts.filter((item) => item.id !== product.id);
       setSelectedProducts(updatedProducts);
-      setSelectProduct(updatedProducts)
+      setSelectProduct(updatedProducts);
     } else {
       setSelectedProducts([...selectedProducts, product]);
-      setSelectProduct([...selectedProducts, product])
+      setSelectProduct([...selectedProducts, product]);
+    }
+  };
+
+  const handleEditProduct = (productId) => {
+    setEditProductId(productId);
+  };
+
+  const handleSaveEdit = async(productId, newQuantity) => {
+    console.log("New Quantity:", newQuantity);
+    const updatedProducts = dataProductCart.map((product) =>
+      product.id === productId ? { ...product, quantity: newQuantity } : product
+    );
+    const editedProduct = updatedProducts.find(product => product.id === productId);
+    try {
+      const responseUpdate = await fetch('http://127.0.0.1:3342/api/updateCartItem',{
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editedProduct),
+      })
+
+      if (!responseUpdate.ok) {
+        const errorMessage = await responseUpdate.text();
+        throw new Error(errorMessage || 'Request failed');
+      }
+  
+      alert("Updated product successfully!");
+      setEditProductId(null);
+      loadDataProduct();
+    } catch (err) {
+      console.error('Delete product failed:', error);
+      throw error;
+    }
+  };
+  
+
+  useEffect(() => {
+    loadDataProduct();
+  }, [dataProductCart]);
+
+  
+  const stylesListProduct = {
+    box: {
+      height: "150px",
+      display: "grid",
+      gridTemplateColumns: "150px auto",
+      marginBottom: "10px",
+    },
+    picture: {
+      backgroundColor: "#FFFFFF",
+      width: "150px",
+      height: "150px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    areaDetail: {
+      display: "flex",
+      justifyContent: "space-between",
+      padding: "10px",
+      color: "black",
+    },
+  };
+
+  return (
+    <div>
+      {dataProductCart.map((product, index) => (
+        <div key={index} style={stylesListProduct.box}>
+          <div style={stylesListProduct.picture}>
+            <img
+              src={dataProduct.find((data) => data.name === product.product_name).img}
+              alt={product.name}
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+          <div style={stylesListProduct.areaDetail}>
+            <div>
+              <h1 className="text-2xl font-bold text-black">{product.product_name}</h1>
+              {editProductId === product.id ? (
+                <div>
+                  <label className="text-xl" htmlFor={`quantity_${product.id}`}>Quantity:</label>
+                  <input
+                    className="text-xl border border-gray-300 rounded-md mx-2 px-2 py-1 focus:outline-none focus:ring focus:ring-blue-200"
+                    type="number"
+                    id={`quantity_${product.id}`}
+                    name={`quantity_${product.id}`}
+                    placeholder={product.quantity}
+                    onChange={(e) => {
+                      const newQuantity = e.target.value;
+                      handleSaveEdit(product.id, newQuantity);
+                    }}
+                  />
+                </div>
+              ) : (
+                <h1 className="text-xl">จำนวน: {product.quantity}</h1>
+              )}
+              <h1 className="text-xl">ราคา: {product.price}</h1>
+            </div>
+            <div>
+              <div className="flex justify-between text-xl gap-2 text-black">
+                <div onClick={() => handleEditProduct(product.id)}>Edit</div>
+                <div onClick={() => deleteProduct(product)}>Delete</div>
+              </div>
+              <input
+                type="checkbox"
+                style={{ width: "24px", height: "24px", padding: "5px" }}
+                onChange={() => handleSelectProduct(product)}
+                checked={selectedProducts.some((item) => item.id === product.id)}
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const ComfirmProduct = (props) => {
+  const {selecProduct, priceTotal} = props
+  const [dataProductCart, setDataProductCart] = useState([]);
+
+  const loadDataProduct = async () => {
+    try {
+      const responseP = await fetch("http://127.0.0.1:8000/ecommerce/");
+      
+      if (!responseP.ok) {
+        throw new Error("Network response was not ok");
+      }
+      
+      const jsonDataP = await responseP.json();
+  
+      const productData = selecProduct.map((item) => {
+        return jsonDataP.find((product) => product.name === item.product_name);
+      });
+      
+      if (!productData) {
+        throw new Error("No product data found for CartItem ID");
+      }
+      console.table(productData)
+      setDataProductCart(productData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -171,120 +348,24 @@ const ListProduct = (props) => {
 
   return (
     <div>
-      {dataProductCart.map((product, index) => (
+      {selecProduct.map((product, index) => (
         <div key={index} style={stylesListProduct.box}>
           <div style={stylesListProduct.picture}>
-            <img
-              src={product.img}
-              alt={product.name}
-              className="max-w-full max-h-full object-contain"
-            />
-          </div>
-          <div style={stylesListProduct.areaDetail}>
-            <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
-              <h1>ไซร์: {product.size}</h1>
-              <h1> {product.quantity}</h1>
-              <h1>ราคา: {product.price}</h1>
-            </div>
-            <div>
-              <div className="flex justify-between text-xl gap-2 text-black">
-                <div>Edit</div>
-                <div>Delete</div>
-              </div>
-              <input
-                type="checkbox"
-                style={{ width: "24px", height: "24px", padding: "5px" }}
-                onChange={() => handleSelectProduct(product)}
-                checked={selectedProducts.some((item) => item.idProduct === product.idProduct)}
+            {dataProductCart.find((item) => item.name === product.product_name) && (
+              <img
+                src={dataProductCart.find((item) => item.name === product.product_name).img}
+                alt={product.name}
+                className="max-w-full max-h-full object-contain"
               />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const ComfirmProduct = (props) => {
-  const {selecProduct, priceTotal} = props
-  const [dataProductCart, setDataProductCart] = useState([]);
-
-  const loadDataProduct = () => {
-    var dataIndex = selecProduct;
-    var dataProduct = getAllProducts();
-
-    const dataProductCart_temp = dataIndex.map((cartItem) => {
-      const product = dataProduct.find(
-        (product) => product.id === cartItem.idProduct
-      );
-      if (product) {
-        return {
-          idProduct: product.id,
-          name: product.name,
-          price: product.price,
-          size: cartItem.size, // ใช้ cartItem.size จาก dataIndex
-          quantity: cartItem.quantity,
-          img: product.img,
-        };
-      } else {
-        return null;
-      }
-    });
-
-    setDataProductCart(dataProductCart_temp);
-  };
-
-  useEffect(() => {
-    loadDataProduct();
-  }, []);
-
-  const stylesListProduct = {
-    box: {
-      height: "150px",
-      display: "grid",
-      gridTemplateColumns: "150px auto",
-      marginBottom: "10px",
-    },
-    picture: {
-      backgroundColor: "#FFFFFF",
-      width: "150px",
-      height: "150px",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    areaDetail: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "10px",
-      color: "black",
-    },
-  };
-
-  return (
-    <div>
-      {dataProductCart.map((product, index) => (
-        <div key={index} style={stylesListProduct.box}>
-          <div style={stylesListProduct.picture}>
-            <img
-              src={product.img}
-              alt={product.name}
-              className="max-w-full max-h-full object-contain"
-            />
+            )}
           </div>
           <div style={stylesListProduct.areaDetail}>
             <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
-              <h1>ไซร์: {product.size}</h1>
-              {/* <h1>จำนวน: {product.quantity}</h1> */}
+              <h1 className="text-2xl font-bold">{product.product_name}</h1>
+              {/* <h1>ไซร์: {product.size}</h1> */}
+              <h1>จำนวน: {product.quantity}</h1>
               <h1>ราคา: {product.price}</h1>
-            </div>
-            <div>
-              <div className="flex justify-between text-xl gap-2 text-black">
-                <div>Edit</div>
-                <div>Delete</div>
-              </div>
+              <h1>{product.price} * {product.quantity} = {product.price*product.quantity}</h1>
             </div>
           </div>
         </div>
@@ -295,6 +376,9 @@ const ComfirmProduct = (props) => {
 };
 
 export default function Cart() {
+
+  const user = 'TestIII'
+
   const [preorderList, setPreorderList] = useState(false);
   const [selecProduct, setSelectProduct] = useState(null);
   const [priceTotal, setPriceTotal] = useState(0);
@@ -333,15 +417,16 @@ export default function Cart() {
   };
 
   const handleTogglePreorderList = () => {
-    setPreorderList(!preorderList);
-    // console.table(selecProduct)
+    console.table(selecProduct)
+    setPreorderList(!preorderList)
   };
+
 
   useEffect(() => {
     // Calculate total price when selected products change
     if (selecProduct !== null) {
       const totalPrice = selecProduct.reduce((total, product) => {
-        return total + product.price;
+        return total + (parseFloat(product.price) * parseFloat(product.quantity));
       }, 0);
       setPriceTotal(totalPrice);
     }
@@ -355,12 +440,16 @@ export default function Cart() {
         <>
           <div style={stylesCart.areaButton}>
             <motion.button
-              style={stylesCart.nextButton}
-              onClick={handleTogglePreorderList}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+            style={stylesCart.nextButton}
+            onClick={handleTogglePreorderList}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             >
-              {priceTotal} ขั้นตอนต่อไป
+              {new Intl.NumberFormat("th-TH", {
+                style: "currency",
+                currency: "THB",
+              }).format(priceTotal)}
+            {" "}ต่อไป
             </motion.button>
           </div>
           <motion.div
@@ -399,6 +488,7 @@ export default function Cart() {
               <motion.button
                 style={stylesCart.nextButton}
                 onClick={() => {
+                  console.log(selecProduct)
                   Router.push("../Store");
                 }}
                 whileHover={{ scale: 1.1 }}

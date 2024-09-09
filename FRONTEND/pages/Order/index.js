@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { color, motion } from "framer-motion";
 import Link from "next/link";
-import { getAllProducts, getProductById } from "../datatest/data";
-import { getListCartAll, addProductToCart } from "../datatest/listcart";
-import { getOrderAll } from "../datatest/order";
+// import { getOrderAll } from "../datatest/order";
 import Router from "next/router";
 
 const HeaderPage = () => {
@@ -34,7 +32,7 @@ const HeaderPage = () => {
         whileTap={{ scale: 0.9 }}
       >
         <Link href={"../Store"}>
-          <label>PREORDER ORDER</label>
+          <label>PODER ORDER</label>
         </Link>
       </motion.h1>
       <div>Profile</div>
@@ -43,7 +41,7 @@ const HeaderPage = () => {
 };
 
 const ListOrder = (props) => {
-  const [dataOrder, setDataOrder] = useState(getOrderAll());
+  //const [dataOrder, setDataOrder] = useState(getOrderAll());
 
   useEffect(() => {}, []);
 
@@ -71,8 +69,9 @@ const ListOrder = (props) => {
   };
 
   return (
-    <div>
-      {dataOrder.map((data, index) => (
+    <div className="text-black">
+      ORDER
+      {/* {dataOrder.map((data, index) => (
         <div
           key={index}
           style={stylesListProduct.box}
@@ -81,7 +80,7 @@ const ListOrder = (props) => {
           }}
         >
           <div style={stylesListProduct.picture}>
-            {/* <img src={""} alt={data.idOrder} className="max-w-full max-h-full" /> */}
+            <img src={""} alt={data.idOrder} className="max-w-full max-h-full" />
             {data.status}
           </div>
           <div style={stylesListProduct.areaDetail}>
@@ -92,7 +91,7 @@ const ListOrder = (props) => {
             </div>
           </div>
         </div>
-      ))}
+      ))} */}
     </div>
   );
 };
